@@ -151,18 +151,33 @@ class NeuralNetwork:
 
     #     self.d_cost_by_final_layer = self.d_cost_by_final_layer / len(self.output_vec)
 
-    def get_the_term(self,layer):
+    def d_layer_by_prev_layer(self,layer):
 
         '''This function is to generate "The term" (diff sigmoid of Zi transformed by matrix weight for that layer)
         This is the d_a_L / d_a_L-1 term. i.e. the differential of a on layer L by the differential of A on layer L-1.
         The term is a vector of length len(layer).  
         '''
 
+        n_l = len(self.z_L[layer])
+        n_l_1 = len(self.z_L[layer - 1])
+
+        #print("n_1, n_l_1 ", n_l , n_l_1) output was 10 , 8
+
         diff_sig_z = []
         for i in range(len(self.z_L[layer])):
             diff_sig_z.append(d_sigmoid(self.z_L[layer][i]))
 
-        return vecxmatrix(transpose(self.weights[layer]),diff_sig_z)
+        weight = self.weights[layer]
+
+        W = [ [0 for i in range(n_l_1)] for j in range(n_l) ]
+
+        for p in range(n_l):
+
+            for k in range(n_l_1):
+
+                W[p][k] = diff_sig_z[p]*weight[p][k]
+
+        return W
     
 
     def gen_backprop_matricies(self):
@@ -173,7 +188,7 @@ class NeuralNetwork:
 
         for layer in range(len(self.hidden_vec)):
 
-            self.backprop_matricies.append(self.get_the_term(layer+1))
+            self.backprop_matricies.append(self.d_layer_by_prev_layer(layer+1))
 
 
 
@@ -196,10 +211,10 @@ def main():
     #print("Hidden: ", network.hidden_vec)
 
     #print("calculate cost function: " , network.calc_cost([1,0,1,0,1,0,0,1,0,1]))
-
+    
     network.gen_backprop_matricies()
-    print(network.backprop_matricies)
-     
+   
+
 
 
 
