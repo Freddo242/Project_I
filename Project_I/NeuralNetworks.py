@@ -1,5 +1,4 @@
 from doctest import OutputChecker
-from locale import nl_langinfo
 import math
 import numpy as np
 from mathssss import multiply_two_dim , vecxmatrix , add_vector, dot_prod , sigmoid , d_sigmoid , transpose
@@ -212,13 +211,10 @@ def main():
     #print("Hidden: ", network.hidden_vec)
 
     #print("calculate cost function: " , network.calc_cost([1,0,1,0,1,0,0,1,0,1]))
-
+    
     network.gen_backprop_matricies()
-    for i in range(2):
-        print("matrix " , i)
-        print("len(matrix) , len(matrix[0]) " , len(network.backprop_matricies[-1-i]) , len(network.backprop_matricies[-1-i][0]))
-     
-     
+   
+
 
 
 
