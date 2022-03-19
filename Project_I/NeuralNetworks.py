@@ -29,9 +29,9 @@ class NeuralNetwork:
         #There will be L-1 matricies in this weights vector.
         self.weights = []
 
-        #The backprop matricies are going to help us learn!
+        #The backprop matricies are going to help us learn! These go backwards. So [0] is actually the last layer
         self.backprop_matricies = []
-        self.cum_backdrop_matricies = []
+        self.cum_backprop_matricies = []
 
         #for z_L there is going to be 1 less layer since we don't have a z_L for the first layer. Z = W*a - b
         self.z_L = [ [0 for i in range(hidden[j])] for j in range(len(hidden)) ] + [ [0 for i in range(output)] ]
@@ -52,6 +52,8 @@ class NeuralNetwork:
         self.bias[-1] = [0 for j in range(output)]
 
         self.error_vec = []
+
+        self.L = len(self.hidden_vec) + 1
 
     def get_W_L(self,layer):
         #returns the weights matrix for a given layer
@@ -191,13 +193,44 @@ class NeuralNetwork:
             self.backprop_matricies.append(self.d_layer_by_prev_layer(layer+1))
 
 
-
     def gen_cum_backprop(self):
 
         '''This is going to make calculations a little easier. We only want to do matrix multiplication once really to save time.
         So, for this function, I want to generate the cumulative backprop matrix, so we can pick it up at any layer.'''
 
-        pass
+        self.cum_backprop_matricies.append(self.backprop_matricies[0])
+
+        for i in range(len(self.backprop_matricies) - 1):
+            self.cum_backprop_matricies.append(multiply_two_dim(self.backprop_matricies[i],self.backprop_matricies[i+1]))
+
+    def gen_d_c_weight(self,weight_layer,weight_from_index,weight_to_index):
+        
+        '''We want to calculate this term for all weights at some point.
+        Make sure you have done gen_output first!'''
+
+        error = self.error_vec
+    
+        #last_term = self.hidden_vec[weight_layer - 1][weight_from_index]
+
+        #furthest_layer_vec = [ self.weights[weight_layer][weight_to_index][j] for j in range(len(self.hidden_vec[weight_layer])) ]
+
+        #backprop_matrix = self.cum_backprop_matricies[len(self.hidden_vec + 1 - weight_layer)]
+
+        grad_vec = [ 2*element for element in error ]
+
+        if weight_layer == self.L :
+            d_A = [0 for i in range(len(error))]
+            print("weight layer - 2" , weight_layer - 2)
+            print("weight from index", weight_from_index)
+            print("length self.hidden_vec[weight_layer-2]" , len(self.hidden_vec[weight_layer-2]))
+            d_A[weight_from_index] = self.hidden_vec[weight_layer-2][weight_from_index]
+            return dot_prod(grad_vec,d_A)/len(error)
+
+        elif weight_layer == self.L - 1:
+            print("weight layer is self.L - 1 !", weight_layer)
+            
+        else:
+            print("We should do somehting here right?")
 
 
 def main():
@@ -213,6 +246,10 @@ def main():
     #print("calculate cost function: " , network.calc_cost([1,0,1,0,1,0,0,1,0,1]))
     
     network.gen_backprop_matricies()
+    network.gen_cum_backprop()
+
+    
+    network.gen_d_c_weight(3,0,0)
    
 
 
