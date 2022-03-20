@@ -10,6 +10,7 @@ class NeuralNetwork:
         self.layers = layers
         self.beginning_node_value = 0.5
         self.L = len(layers)
+
         self.A = self.gen_A()
         self.weights = self.gen_weights()
         self.weights.insert(0,0)
@@ -17,23 +18,27 @@ class NeuralNetwork:
         self.B = self.gen_A()
 
         self.y = 0
+        cost_by_weights = np.array([])
+        cost_by_bias = np.array([])
 
+        bprop_matrices = np.array([ [] for i in range(self.L) ])
+        c_bprop_matrices = np.array([ [] for i in range(self.L) ])
         
 
     def gen_A(self):
 
-        return [ [self.beginning_node_value for i in range(self.layers[j])] for j in range(self.L) ]
+        return np.array([ [self.beginning_node_value for i in range(self.layers[j])] for j in range(self.L) ])
 
 
     def gen_weights(self):
 
-        return [ [ [ 1 for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ] for layer in range(self.L - 1) ]
+        return np.array([ [ [ 1 for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ] for layer in range(self.L - 1) ])
 
 
     def forward_propogation(self, y ):
         
         if len(y) != self.layers[-1]:
-            raise TypeError("Expected vector does not equal length of output layer")
+            raise ValueError("Expected vector does not equal length of output layer")
         else: 
             self.y = y
 
