@@ -2,6 +2,7 @@ import math
 from typing import final
 import numpy as np
 from mathssss import multiply_two_dim , vecxmatrix , add_vector, dot_prod , sigmoid , d_sigmoid , transpose
+import random
 
 
 class NeuralNetwork:
@@ -9,7 +10,6 @@ class NeuralNetwork:
     def __init__(self,layers):
 
         self.layers = layers
-        self.beginning_node_value = 0.5
         self.L = len(layers)
         self.A = self.gen_A()
         self.weights = self.gen_weights()
@@ -18,10 +18,6 @@ class NeuralNetwork:
         self.B = self.gen_A()
 
         self.y = 0
-
-        self.cost_by_weights = self.gen_weights()
-        self.cost_by_weights.insert(0,0)
-        self.cost_by_bias = [np.array([ 0 for i in range(layer) ]).astype('float64') for layer in layers]
 
         self.bprop_matrices = [0,0]
         self.c_bprop_matrices = [0,0]
@@ -33,20 +29,28 @@ class NeuralNetwork:
 
     def gen_A(self):
 
-        return [ np.array([self.beginning_node_value for i in range(self.layers[j])] ).astype('float64') for j in range(self.L) ]
+        return [ np.array([ 0 for i in range(self.layers[j])] ).astype('float64') for j in range(self.L) ]
 
 
     def gen_weights(self):
 
-        return [ np.array([ [ 1 for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ]).astype('float64') for layer in range(self.L - 1) ]
-
-
-    def forward_propogation(self, y ):
+        return [ np.array([ [ random.uniform(-1,1) for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ]).astype('float64') for layer in range(self.L - 1) ]
         
+
+    def forward_propogation(self, given_input ,y ):
+
+        
+        if len(given_input) != self.layers[0]:
+            raise ValueError("Expected vector does not equal length of input layer")
+        else: 
+            self.A[0] = np.array(given_input)
+
+
         if len(y) != self.layers[-1]:
             raise ValueError("Expected vector does not equal length of output layer")
         else: 
-            self.y = np.array(y).astype('float64')
+            self.y = np.array(y)
+
 
         for layer in range(1,self.L):
 
@@ -104,7 +108,7 @@ class NeuralNetwork:
 
             term_a = self.sig_prime_z[-2][to_index] * self.A[-2][from_index]
 
-            term_w = [ self.sig_prime_z[-1][i] * self.weights[-1][i][to_index] for i in range(self.layers[-1]) ]
+            term_w = np.array([ self.sig_prime_z[-1][i] * self.weights[-1][i][to_index] for i in range(self.layers[-1]) ])
 
             result_b = dot_prod(self.c_by_last_layer , term_w)
 
@@ -123,7 +127,38 @@ class NeuralNetwork:
             return result_c
 
 
-    def adjust_nodes(self):
+    def gen_cost_by_bias(self, layer, index):
+
+        if layer == self.L - 1:
+
+            return self.c_by_last_layer[index] * self.sig_prime_z[-1][index]
+
+        if layer == self.L - 2:
+
+            scalar = self.sig_prime_z[-2][index]
+
+            mid_vec = np.array([ self.sig_prime_z[-1][i] * self.weights[-1][i][index] for i in range(self.layers[-1]) ])
+
+            result_b = dot_prod(mid_vec, self.c_by_last_layer)
+
+            result_b *= scalar
+
+            return result_b
+
+        else:
+
+            scalar = self.sig_prime_z[layer][index]
+
+            final_vec = np.array( [ self.sig_prime_z[layer+1][i] * self.weights[layer+1][i][index] for i in range(self.layers[layer+1]) ] )
+
+            transformation_on_final_vec = vecxmatrix( transpose( self.c_bprop_matrices[-layer] ) , final_vec )
+
+            result_c = dot_prod(transformation_on_final_vec , self.c_by_last_layer) * scalar        
+
+            return result_c
+
+
+    def adjust_weights(self):
 
         for layer in range(1,self.L):
 
@@ -131,22 +166,35 @@ class NeuralNetwork:
 
                 for j in range(len(self.weights[layer][i])):
 
-                    print("Adjust: " , layer, i , j)
+                    #print("Adjust: " , layer, i , j)
                     adjustment = self.gen_cost_by_weight(layer,j,i)
                     self.weights[layer][i][j] += adjustment
         
+
+    def adjust_bias(self):
+
+        for layer in range(1,self.L):
+
+            for index in range(len(self.B[layer])):
+
+                bias_adjustment = self.gen_cost_by_bias(layer,index)
+                self.B[layer][index] += bias_adjustment
+
+
+
 
 
 def main():
     
     network = NeuralNetwork([4,5,6,3])
-    network.forward_propogation([1,0,0])
-    network.gen_backprop_matrices()
-    network.gen_cbprop_matrices()
-    print("weights before" , network.weights)
-    network.adjust_nodes()
-    print("weights after" , network.weights)
-  
+    for i in range(1000):    
+        network.forward_propogation([0,0,0,1] ,[1,0,0])
+        network.gen_backprop_matrices()
+        network.gen_cbprop_matrices()
+        network.adjust_weights()
+        network.adjust_bias()
+        print("output" , network.A[-1])
+    
 
 if __name__ == "__main__":
     main()
