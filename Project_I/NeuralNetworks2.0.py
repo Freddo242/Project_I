@@ -34,7 +34,7 @@ class NeuralNetwork:
 
     def gen_weights(self):
 
-        return [ np.array([ [ random.uniform(-1,1) for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ]).astype('float64') for layer in range(self.L - 1) ]
+        return [ np.array([ [ random.uniform(-1,1) for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ]) for layer in range(self.L - 1) ]
         
 
     def forward_propogation(self, given_input ,y ):
@@ -54,7 +54,7 @@ class NeuralNetwork:
 
         for layer in range(1,self.L):
 
-            Z = add_vector(vecxmatrix(self.weights[layer],self.A[layer-1]) , np.array([ -element for element in self.B[layer] ]) )
+            Z = add_vector(vecxmatrix(self.weights[layer],self.A[layer-1]) , self.B[layer] )
             self.Z[layer] = Z
             self.A[layer] = np.array([sigmoid(x) for x in Z])
             
@@ -63,7 +63,7 @@ class NeuralNetwork:
 
     def gen_sig_prime_z(self):
         
-        for layer in range(self.L):
+        for layer in range(1,self.L):
 
             vec = np.array( [ d_sigmoid(self.Z[layer][i]) for i in range(len(self.Z[layer])) ] ).astype('float64')
 
@@ -158,43 +158,26 @@ class NeuralNetwork:
             return result_c
 
 
-    def adjust_weights(self):
+    def adjust_weights_and_bias(self):
 
         for layer in range(1,self.L):
 
             for i in range(len(self.weights[layer])):
+
+                bias_adjustment = self.gen_cost_by_bias(layer,i)
+                self.B[layer][i] += bias_adjustment
 
                 for j in range(len(self.weights[layer][i])):
 
                     #print("Adjust: " , layer, i , j)
                     adjustment = self.gen_cost_by_weight(layer,j,i)
                     self.weights[layer][i][j] += adjustment
-        
-
-    def adjust_bias(self):
-
-        for layer in range(1,self.L):
-
-            for index in range(len(self.B[layer])):
-
-                bias_adjustment = self.gen_cost_by_bias(layer,index)
-                self.B[layer][index] += bias_adjustment
-
-
-
 
 
 def main():
     
     network = NeuralNetwork([4,5,6,3])
-    for i in range(1000):    
-        network.forward_propogation([0,0,0,1] ,[1,0,0])
-        network.gen_backprop_matrices()
-        network.gen_cbprop_matrices()
-        network.adjust_weights()
-        network.adjust_bias()
-        print("output" , network.A[-1])
-    
+
 
 if __name__ == "__main__":
     main()
