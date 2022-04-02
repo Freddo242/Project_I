@@ -11,11 +11,11 @@ class NeuralNetwork:
 
         self.layers = layers
         self.L = len(layers)
-        self.A = self.gen_A()
+        self.A = [ 0 for i in range(self.L) ]
         self.weights = self.gen_weights()
         self.weights.insert(0,0)
-        self.Z = self.gen_A()
-        self.B = self.gen_A()
+        self.Z = [ 0 for i in range(self.L) ]
+        self.B = self.gen_B()
 
         self.y = 0
 
@@ -27,9 +27,9 @@ class NeuralNetwork:
         self.c_by_last_layer = []
         
 
-    def gen_A(self):
+    def gen_B(self):
 
-        return [ np.array([ 0 for i in range(self.layers[j])] ).astype('float64') for j in range(self.L) ]
+        return [ np.array( [ random.uniform(-1,1) for i in range(self.layers[j])] ) for j in range(self.L) ]
 
 
     def gen_weights(self):
