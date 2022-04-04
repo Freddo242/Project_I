@@ -22,7 +22,7 @@ class NeuralNetwork:
         self.bprop_matrices = [0,0]
         self.c_bprop_matrices = [0,0]
 
-        self.sig_prime_z = []
+        self.sig_prime_z = [0]
 
         self.c_by_last_layer = []
         
@@ -80,7 +80,9 @@ class NeuralNetwork:
             for i in range(self.layers[layer-1]):
                 vec = []
 
-                for j in range(self.layers[layer]):
+                for j in range( self.layers[layer] ):
+
+                    #print("layer ,i, j", layer, i , j)
                     vec.append( self.sig_prime_z[layer][j] * self.weights[layer][j][i] )
 
                 matrix.append(vec)
@@ -118,11 +120,17 @@ class NeuralNetwork:
 
         else:
 
-            final_term = np.array([ self.sig_prime_z[layer+1][j] * self.weights[layer+1][j][from_index] for j in range(self.layers[layer+1]) ] ).astype('float64')
+            vec = np.array([ self.sig_prime_z[layer+1][i] * self.weights[layer+1][i][to_index] for i in range(len(self.Z[layer+1])) ])
 
-            transform_matrix_on_final_term = vecxmatrix(transpose(self.c_bprop_matrices[-layer]) , final_term)
+            scalar = self.sig_prime_z[layer][to_index]*self.A[layer-1][from_index]
 
-            result_c = dot_prod(transform_matrix_on_final_term,self.c_by_last_layer) * self.sig_prime_z[layer][to_index] * self.A[layer-1][from_index]        
+            matrix = self.c_bprop_matrices[-(self.L-layer)]
+
+            matrix_on_vec = vecxmatrix( transpose(matrix) , vec )
+
+            result_c = dot_prod(matrix_on_vec , self.c_by_last_layer)
+
+            result_c *= scalar
 
             return result_c
 
@@ -147,15 +155,20 @@ class NeuralNetwork:
 
         else:
 
+            vec = np.array([ self.sig_prime_z[layer+1][i] * self.weights[layer+1][i][index] for i in range(len(self.Z[layer+1])) ])
+
             scalar = self.sig_prime_z[layer][index]
 
-            final_vec = np.array( [ self.sig_prime_z[layer+1][i] * self.weights[layer+1][i][index] for i in range(self.layers[layer+1]) ] )
+            matrix = self.c_bprop_matrices[-(self.L-layer)]
 
-            transformation_on_final_vec = vecxmatrix( transpose( self.c_bprop_matrices[-layer] ) , final_vec )
+            matrix_on_vec = vecxmatrix( transpose(matrix) , vec )
 
-            result_c = dot_prod(transformation_on_final_vec , self.c_by_last_layer) * scalar        
+            result_c = dot_prod(matrix_on_vec , self.c_by_last_layer)
+
+            result_c *= scalar
 
             return result_c
+
 
 
     def adjust_weights_and_bias(self):
@@ -164,19 +177,38 @@ class NeuralNetwork:
 
             for i in range(len(self.weights[layer])):
 
+                print(layer , i)
                 bias_adjustment = self.gen_cost_by_bias(layer,i)
-                self.B[layer][i] += bias_adjustment
+                #print("adjustment to bias ", bias_adjustment)
+                self.B[layer][i] -= bias_adjustment
 
                 for j in range(len(self.weights[layer][i])):
 
-                    #print("Adjust: " , layer, i , j)
                     adjustment = self.gen_cost_by_weight(layer,j,i)
-                    self.weights[layer][i][j] += adjustment
+                    #print("adjustment to weight: ", adjustment)
+                    self.weights[layer][i][j] -= adjustment
+
+        
+    def learn(self):
+        self.gen_backprop_matrices()
+        self.gen_cbprop_matrices()
+
+
+        self.adjust_weights_and_bias()
+        print(self.A[-1])
+        #print("bias ,", self.B)
 
 
 def main():
     
-    network = NeuralNetwork([4,5,6,3])
+    network = NeuralNetwork([2,3,2,3,2])
+
+    network.forward_propogation( [1,0],[0,1] )
+    network.gen_backprop_matrices()
+    network.gen_cbprop_matrices()
+
+    print(network.gen_cost_by_bias(1,0))
+    print(network.gen_cost_by_weight(1,0,0))
 
 
 if __name__ == "__main__":
