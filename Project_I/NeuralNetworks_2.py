@@ -19,10 +19,10 @@ class NeuralNetwork:
 
         self.y = 0
 
-        self.bprop_matrices = [0,0]
-        self.c_bprop_matrices = [0,0]
+        self.bprop_matrices = [0 for i in range(self.L)]
+        self.c_bprop_matrices = [0 for i in range(self.L)]
 
-        self.sig_prime_z = [0]
+        self.sig_prime_z = [0 for i in range(self.L)]
 
         self.c_by_last_layer = []
         
@@ -67,7 +67,7 @@ class NeuralNetwork:
 
             vec = np.array( [ d_sigmoid(self.Z[layer][i]) for i in range(len(self.Z[layer])) ] ).astype('float64')
 
-            self.sig_prime_z.append(vec)
+            self.sig_prime_z[layer] = vec
 
 
     def gen_backprop_matrices(self):
@@ -87,17 +87,17 @@ class NeuralNetwork:
 
                 matrix.append(vec)
 
-            self.bprop_matrices.append(np.array(matrix).astype('float64'))
+            self.bprop_matrices[layer] = np.array(matrix).astype('float64')
 
 
     def gen_cbprop_matrices(self):
 
         matrix = self.bprop_matrices[-1]
-        self.c_bprop_matrices.append(matrix)
+        self.c_bprop_matrices[-1] = matrix
 
         for i in range(2,self.L - 1):
             matrix = multiply_two_dim(matrix, self.bprop_matrices[-i])
-            self.c_bprop_matrices.insert(2, matrix)
+            self.c_bprop_matrices[-i] = matrix
         
 
     def gen_cost_by_weight(self, layer, from_index, to_index):
@@ -202,20 +202,8 @@ def main():
     
     network = NeuralNetwork([2,3,2,3,2])
 
-    #network.forward_propogation( [1,0], [0,1])
-
-    #network.gen_backprop_matrices()
-    #network.gen_cbprop_matrices()
-
-    #print(network.gen_cost_by_weight(4,2,0))
-    #print(network.gen_cost_by_weight(3,1,0))
-    #print(network.gen_cost_by_weight(2,1,1))
-    #print(network.gen_cost_by_bias(4,0))
-    #print(network.gen_cost_by_bias(3,0))
-    #print(network.gen_cost_by_bias(2,1))
-
-    for i in range(100):
-        network.forward_propogation( [1,0],[0,1] )
+    for i in range(10000):
+        network.forward_propogation( [1,0],[1,0] )
         network.learn()
 
     
