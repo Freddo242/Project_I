@@ -24,11 +24,9 @@ Project created with:
  
 ## Setup
 
- - have the Mathssss.py in the same directory.
 
 ## Usage
 
- - 
 
 ## Improvement
 
