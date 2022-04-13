@@ -13,7 +13,7 @@ It still needs some tweaking to make it usable, but all of the important compone
 
 ## General info
 
-This is primarily a learning project for me; I went into this project completely ignorant of how to code a Neural Network and I wanted to see how far I could get from just knowing the basic principles behind back-propagation using the formulas that I had derived. There are definitely more sophisticated ways to do it, but I hope anyone using this can gain some insight from a complete newbie's interpretation of Neural Networks.
+This is primarily a learning project for me; I went into this project completely ignorant of what a Neural Network is and I wanted to see how far I could get from just knowing the basic principles behind back-propagation using the formulas that I had derived. There are definitely more sophisticated ways to do it, but I hope anyone using this can gain some insight from a complete newbie's interpretation of Neural Networks.
 
 The idea is that you can create a neural network and fairly easily keep track of what it is doing. If you're new to Neural Networks, like I am, then you  may want to know what the weights and bias' are doing at particular points ; you may want to see what the cost of a particular weight would be with respect to the cost function; and I hope that it is easy to do so with the attributes and methods that the class provides.
 
