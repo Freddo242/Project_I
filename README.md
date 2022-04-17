@@ -31,6 +31,7 @@ Project created with:
 ## Improvement
 
  - Fix bug which appears when you create a network with a larger than two node difference between any middle layers.
+ - Create a function to store the cost function adjustment rather than adjust the network after every calculation of the gradient function. 
  - Add function that will read a csv and learn from the set of data
  - Add function that will read a csv and give an output without adjusting the weights and bias'
  - Make more user friendly.
