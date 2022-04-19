@@ -29,15 +29,13 @@ Once you have downloaded them, you can just use the import keyword in Python to 
 
 ## Usage
 
-Step 1 - Initialise a NeuralNetwork
------------------------------------
+### Step 1 - Initialise a NeuralNetwork
 Network = NeuralNetwork( [layers] )
 the init function takes in one argument, a list of the number of nodes in each layer. 
 
 e.g. NeuralNetwork( [4,5,6,5,4] ) is a network with 5 layers with the nodes on each layer corresponding to the values of the list respectively.
 
-Step 2 - Feeding in data
-------------------------
+### Step 2 - Feeding in data
 
 This is TBC for now since it needs some refinement before we can throw data at it!
 
