@@ -2,9 +2,11 @@
 
 A Neural Network class that can be used to initialise a network of any size, calculate outputs, and minimise the cost function. 
 
-I started this project after watching 3Blue1Brown's serires on the Neural Networks (https://www.3blue1brown.com/topics/neural-networks). The maths is really interesting: I loved Linear Algebra in Uni! I was initially intending to do a project on something else entirely, but the maths was fun and once I had done that, I had to see if I could put it into Python: and it "worked"!
+I started this project after watching 3Blue1Brown's serires on the Neural Networks (https://www.3blue1brown.com/topics/neural-networks). The maths is really interesting: I loved Linear Algebra in Uni! I was initially intending to do a project on something else entirely, but the maths was fun and once I had done that, I had to see if I could put it into Python: and it worked!
 
 It still needs some tweaking to make it usable, but all of the important components needed to make a network learn are there.
+
+Feel free to correct me where I have made a mistake! The only way I know this is correct is because it somewhat works.
 
 ## Table of contents
 *[General info](#General-info)
