@@ -1,7 +1,5 @@
-import math
-from typing import final
 import numpy as np
-from mathssss import multiply_two_dim , vecxmatrix , add_vector, dot_prod , sigmoid , d_sigmoid , transpose
+from mathssss import multiply_two_dim , vecxmatrix , add_vector, dot_prod , sigmoid , d_sigmoid
 import random
 
 
@@ -24,7 +22,13 @@ class NeuralNetwork:
 
         self.sig_prime_z = [0 for i in range(self.L)]
 
+        self.cost_of_network = []
         self.c_by_last_layer = []
+
+        self.weights_cost = [ np.array([ [ 0 for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ]) for layer in range(self.L - 1) ]
+        self.weights_cost.insert(0,0)
+
+        self.bias_cost = [ np.array( [ 0 for i in range(self.layers[j])] ) for j in range(self.L) ]
         
 
     def gen_B(self):
@@ -37,7 +41,7 @@ class NeuralNetwork:
         return [ np.array([ [ random.uniform(-1,1) for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ]) for layer in range(self.L - 1) ]
         
 
-    def forward_propogation(self, given_input ,y ):
+    def forward_propagation(self, given_input , y):
 
         
         if len(given_input) != self.layers[0]:
@@ -56,18 +60,29 @@ class NeuralNetwork:
 
             Z = add_vector(vecxmatrix(self.weights[layer],self.A[layer-1]) , self.B[layer] )
             self.Z[layer] = Z
-            self.A[layer] = np.array([sigmoid(x) for x in Z])
-            
+            self.A[layer] = np.array([sigmoid(x) for x in Z]).astype('float32')
+
+
+        #calculating the cost of network
+        for i in range(self.layers[-1]):
+            self.cost_of_network += self.A[-1][i] - self.y[i]
+
+
+        #calculations for backpropagation
         self.c_by_last_layer = np.array( [ (2*(self.A[-1][i] - self.y[i]))/(self.layers[-1]) for i in range(self.layers[-1]) ] )
+        self.gen_backprop_matrices()
+        self.gen_cbprop_matrices()
+
 
 
     def gen_sig_prime_z(self):
         
         for layer in range(1,self.L):
 
-            vec = np.array( [ d_sigmoid(self.Z[layer][i]) for i in range(len(self.Z[layer])) ] ).astype('float64')
+            vec = np.array( [ d_sigmoid(self.Z[layer][i]) for i in range(len(self.Z[layer])) ] ).astype('float32')
 
             self.sig_prime_z[layer] = vec
+
 
 
     def gen_backprop_matrices(self):
@@ -82,12 +97,13 @@ class NeuralNetwork:
 
                 for j in range( len(self.A[layer-1])):
 
-                    #print("layer ,i, j", layer, i , j)
+
                     vec.append( self.sig_prime_z[layer][i] * self.weights[layer][i][j] )
 
                 matrix.append(vec)
 
-            self.bprop_matrices[layer] = np.array(matrix).astype('float64')
+            self.bprop_matrices[layer] = np.array(matrix).astype('float32')
+
 
 
     def gen_cbprop_matrices(self):
@@ -99,6 +115,7 @@ class NeuralNetwork:
             matrix = multiply_two_dim(matrix, self.bprop_matrices[-i])
             self.c_bprop_matrices[-i] = matrix
         
+
 
     def gen_cost_by_weight(self, layer, from_index, to_index):
 
@@ -133,6 +150,7 @@ class NeuralNetwork:
             result_c *= scalar
 
             return result_c
+
 
 
     def gen_cost_by_bias(self, layer, index):
@@ -171,40 +189,65 @@ class NeuralNetwork:
 
 
 
-    def adjust_weights_and_bias(self):
+    def gen_cost_gradient(self):
 
         for layer in range(1,self.L):
 
             for i in range(len(self.A[layer])):
 
                 bias_adjustment = self.gen_cost_by_bias(layer,i)
-
-                self.B[layer][i] -= bias_adjustment
+                #This is minus because we want the negative gradient of the cost function. Same goes for weights adjustment.
+                self.bias_cost[layer][i] -= bias_adjustment
 
                 for j in range(len(self.A[layer-1])):
 
                     adjustment = self.gen_cost_by_weight(layer,j,i)
 
-                    self.weights[layer][i][j] -= adjustment
-
+                    self.weights_cost[layer][i][j] -= adjustment
         
+
+
     def learn(self):
-        self.gen_backprop_matrices()
-        self.gen_cbprop_matrices()
+
+        #first calculate the gradient function
+        self.gen_cost_gradient()
+
+        #adding the gradient function to the weights and biases
+        for layer in range(1,self.L):
+            for i in range(len(self.A[layer])):
+                self.B[layer][i] += self.bias_cost[layer][i]
+                for j in range(len(self.A[layer-1])):
+                    self.weights[layer][i][j] += self.weights_cost[layer][i][j]
+
+        self.reset_costs()
 
 
-        self.adjust_weights_and_bias()
-        print(self.A[-1])
+
+    def reset_costs(self):
+
+        #reseting the gradient function
+        self.weights_cost = [ np.array([ [ 0 for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ]) for layer in range(self.L - 1) ]
+        self.weights_cost.insert(0,0)
+        self.bias_cost = [ np.array( [ 0 for i in range(self.layers[j])] ) for j in range(self.L) ]
+
+        #reset cost of network
+        self.cost_of_network = 0
+
+
+
+    def save(self,file_path):
+        #Save weights and biases to a file
+        pass
+
+    def load(self,file_path):
+        #loads weights and biases from a file
+        pass
 
 
 
 def main():
     
-    network = NeuralNetwork([2,3,2,3,2])
-
-    for i in range(10000):
-        network.forward_propogation( [1,0],[1,0] )
-        network.learn()
+    network = NeuralNetwork([4,7,7,7,4])
 
     
 
