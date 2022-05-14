@@ -22,27 +22,32 @@ class NeuralNetwork:
 
         self.sig_prime_z = [0 for i in range(self.L)]
 
-        self.cost_of_network = []
+        self.cost_of_network = 0
         self.c_by_last_layer = []
 
-        self.weights_cost = [ np.array([ [ 0 for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ]) for layer in range(self.L - 1) ]
+        self.weights_cost = [ np.array([ [ 0 for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ]).astype('float32') for layer in range(self.L - 1) ]
         self.weights_cost.insert(0,0)
 
-        self.bias_cost = [ np.array( [ 0 for i in range(self.layers[j])] ) for j in range(self.L) ]
+        self.bias_cost = [ np.array( [ 0 for i in range(self.layers[j])] ).astype('float32') for j in range(self.L) ]
         
 
     def gen_B(self):
+
+        #Generates a list of arrays the same length as the layers in the network, initialising with random numbers between -1 and 1
 
         return [ np.array( [ random.uniform(-1,1) for i in range(self.layers[j])] ) for j in range(self.L) ]
 
 
     def gen_weights(self):
 
+        #generates a list of transformation matrices initialised with random numbers between -1 and 1
+
         return [ np.array([ [ random.uniform(-1,1) for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ]) for layer in range(self.L - 1) ]
         
 
     def forward_propagation(self, given_input , y):
 
+        #checks the inputs and raises ValueErrors if they're not the correct length
         
         if len(given_input) != self.layers[0]:
             raise ValueError("Expected vector does not equal length of input layer")
@@ -55,6 +60,7 @@ class NeuralNetwork:
         else: 
             self.y = np.array(y)
 
+        #Calculates the value of each node from the given_input. Generates Z.
 
         for layer in range(1,self.L):
 
@@ -64,8 +70,9 @@ class NeuralNetwork:
 
 
         #calculating the cost of network
+        self.cost_of_network = 0
         for i in range(self.layers[-1]):
-            self.cost_of_network += self.A[-1][i] - self.y[i]
+            self.cost_of_network += (self.A[-1][i] - self.y[i])**2
 
 
         #calculations for backpropagation
@@ -73,6 +80,21 @@ class NeuralNetwork:
         self.gen_backprop_matrices()
         self.gen_cbprop_matrices()
 
+
+    def calc_output(self,input):
+
+        if len(input) != self.layers[0]:
+            raise ValueError("Expected vector does not equal length of input layer")
+        else: 
+            self.A[0] = np.array(input)
+
+        for layer in range(1,self.L):
+
+            Z = add_vector(vecxmatrix(self.weights[layer],self.A[layer-1]) , self.B[layer] )
+            self.Z[layer] = Z
+            self.A[layer] = np.array([sigmoid(x) for x in Z]).astype('float32')
+
+        return self.A[-1]
 
 
     def gen_sig_prime_z(self):
@@ -125,7 +147,7 @@ class NeuralNetwork:
 
         if layer == self.L - 2:
 
-            term_a = self.sig_prime_z[-2][to_index] * self.A[-2][from_index]
+            term_a = self.sig_prime_z[-2][to_index] * self.A[-3][from_index]
 
             term_w = np.array([ self.sig_prime_z[-1][i] * self.weights[-1][i][to_index] for i in range(self.layers[-1]) ])
 
@@ -192,7 +214,7 @@ class NeuralNetwork:
     def gen_cost_gradient(self):
 
         for layer in range(1,self.L):
-
+            
             for i in range(len(self.A[layer])):
 
                 bias_adjustment = self.gen_cost_by_bias(layer,i)
@@ -204,13 +226,11 @@ class NeuralNetwork:
                     adjustment = self.gen_cost_by_weight(layer,j,i)
 
                     self.weights_cost[layer][i][j] -= adjustment
+
         
 
 
     def learn(self):
-
-        #first calculate the gradient function
-        self.gen_cost_gradient()
 
         #adding the gradient function to the weights and biases
         for layer in range(1,self.L):
@@ -222,16 +242,12 @@ class NeuralNetwork:
         self.reset_costs()
 
 
-
     def reset_costs(self):
 
-        #reseting the gradient function
-        self.weights_cost = [ np.array([ [ 0 for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ]) for layer in range(self.L - 1) ]
+        #reseting the weights and biases costs
+        self.weights_cost = [ np.array([ [ 0.0 for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ]).astype('float32') for layer in range(self.L - 1) ]
         self.weights_cost.insert(0,0)
-        self.bias_cost = [ np.array( [ 0 for i in range(self.layers[j])] ) for j in range(self.L) ]
-
-        #reset cost of network
-        self.cost_of_network = 0
+        self.bias_cost = [ np.array( [ 0.0 for i in range(self.layers[j])] ).astype('float32') for j in range(self.L) ]
 
 
 
@@ -248,7 +264,6 @@ class NeuralNetwork:
 def main():
     
     network = NeuralNetwork([4,7,7,7,4])
-
     
 
 
