@@ -60,14 +60,24 @@ e.g. NeuralNetwork( [4,5,6,5,4] ) is a network with 5 layers with the nodes on e
 
 #### Step 2 - Feeding in data
 
-This is TBC for now since it needs some refinement before we can throw data at it!
+The way that i've been using this class is by creating a pandas dataframe using data from a csv file.
+For each set of training data that you want to train your network on, you'll need to loop over each input and feed it into the forward_propagation() function.
+Then do the gen_cost_gradient() (I could probably put this inside the forward_propagation function, but it's useful to keep it out sometimes).
+A loop can look something like this:
+
+for case in test_cases:
+    forward_propagation(input,expected_output)
+    gen_cost_gradient()
+
+#### Step 3 - Costs and learning
+
+Once you've fed in all of the information for a set of inputs, you can check out the test_set_costs which is a list of the costs for each of the training examples that you've used.
+
+Next, you'll want to get your network to improve on what it has done! This is where the learn() function comes in. The learn function will adjust all of your weights and biases based with the weights_costs and bias_costs attributes that we've calculated using backpropagation, and then reset those attributes ready for the next training set.
+
+The cost_per_training_set will record the average cost of each training set, so that you can see how your network is improving with each training set. 
 
 ## Improvement
 
- - Fix bug which appears when you create a network with a larger than two node difference between any middle layers.
- - Create a function to store the cost function adjustment rather than adjust the network after every calculation of the gradient function. 
- - Add function that will read a csv and learn from the set of data
- - Add function that will read a csv and give an output without adjusting the weights and biases
- - Make more user friendly.
  - Network GUI to give a visual representation of the network and it's progress.
 
