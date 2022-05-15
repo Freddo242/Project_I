@@ -233,13 +233,18 @@ class NeuralNetwork:
         
 
 
-    def learn(self,training_examples):
+    def learn(self):
 
         #Here we need to divide each cost value by the number of training examples.
         for matrix in range(1,len(self.weights)):
             for vector in range(len(self.weights_cost[matrix])):
                 for i in range(len(self.weights_cost[matrix][vector])):
-                    self.weights_cost[matrix][vector][i] = (1/training_examples)*self.weights_cost[matrix][vector][i]
+                    self.weights_cost[matrix][vector][i] = (1/len(self.test_set_costs))*self.weights_cost[matrix][vector][i]
+
+        #And the same for the biases
+        for vector in range(1,len(self.bias_cost)):
+            for element in range(len(self.bias_cost[vector])):
+                self.bias_cost[vector][element] = (1/len(self.test_set_costs))*self.bias_cost[vector][element]
 
 
         #adding the gradient function to the weights and biases
