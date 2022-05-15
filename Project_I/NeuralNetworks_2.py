@@ -22,8 +22,9 @@ class NeuralNetwork:
 
         self.sig_prime_z = [0 for i in range(self.L)]
 
-        self.cost_of_network = 0
+        self.test_set_costs = []
         self.c_by_last_layer = []
+        self.cost_per_training_set = []
 
         self.weights_cost = [ np.array([ [ 0 for j in range(self.layers[layer]) ] for i in range(self.layers[layer+1]) ]).astype('float32') for layer in range(self.L - 1) ]
         self.weights_cost.insert(0,0)
@@ -70,13 +71,15 @@ class NeuralNetwork:
 
 
         #calculating the cost of network
-        self.cost_of_network = 0
+        new_cost = 0
         for i in range(self.layers[-1]):
-            self.cost_of_network += (self.A[-1][i] - self.y[i])**2
+            new_cost += (self.A[-1][i] - self.y[i])**2
+        self.test_set_costs.append(new_cost)
 
 
         #calculations for backpropagation
-        self.c_by_last_layer = np.array( [ (2*(self.A[-1][i] - self.y[i]))/(self.layers[-1]) for i in range(self.layers[-1]) ] )
+        self.c_by_last_layer = np.array( [ (2*(self.A[-1][i] - self.y[i])) for i in range(self.layers[-1]) ] )
+
         self.gen_backprop_matrices()
         self.gen_cbprop_matrices()
 
@@ -230,7 +233,14 @@ class NeuralNetwork:
         
 
 
-    def learn(self):
+    def learn(self,training_examples):
+
+        #Here we need to divide each cost value by the number of training examples.
+        for matrix in range(1,len(self.weights)):
+            for vector in range(len(self.weights_cost[matrix])):
+                for i in range(len(self.weights_cost[matrix][vector])):
+                    self.weights_cost[matrix][vector][i] = (1/training_examples)*self.weights_cost[matrix][vector][i]
+
 
         #adding the gradient function to the weights and biases
         for layer in range(1,self.L):
@@ -238,6 +248,11 @@ class NeuralNetwork:
                 self.B[layer][i] += self.bias_cost[layer][i]
                 for j in range(len(self.A[layer-1])):
                     self.weights[layer][i][j] += self.weights_cost[layer][i][j]
+
+        average_cost = 0
+        for cost in range(len(self.test_set_costs)):
+            average_cost += self.test_set_costs[cost]
+        self.cost_per_training_set.append(average_cost/len(self.test_set_costs))
 
         self.reset_costs()
 
@@ -249,7 +264,12 @@ class NeuralNetwork:
         self.weights_cost.insert(0,0)
         self.bias_cost = [ np.array( [ 0.0 for i in range(self.layers[j])] ).astype('float32') for j in range(self.L) ]
 
+        self.test_set_costs = []
 
+
+    def rate_of_convergence(self):
+        
+        pass
 
     def save(self,file_path):
         #Save weights and biases to a file
